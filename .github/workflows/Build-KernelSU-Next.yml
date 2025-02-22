@@ -210,7 +210,7 @@ jobs:
           patch -p1 < mksu_susfs_fix.patch || true
           echo "正在打nonGKI补丁"
           patch -p1 < nongki_fix.patch || true 
-          chomd 777 fix_nongki.sh
+          chmod 777 fix_nongki.sh
           ./fix_nongki.sh
           echo "完成"
       - name: Apply SUSFS Patches RKSU
