@@ -136,7 +136,6 @@ jobs:
           cd kernel_workspace/kernel_platform
           curl -LSs "https://raw.githubusercontent.com/5ec1cff/KernelSU/main/kernel/setup.sh" | bash ${{ env.BRANCH }}
           cd ./KernelSU
-          git revert -m 1 $(git log --grep="remove devpts hook" --pretty=format:"%h") -n
           KSU_VERSION=$(expr $(/usr/bin/git rev-list --count HEAD) "+" 10200)
           echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
           sed -i "s/DKSU_VERSION=16/DKSU_VERSION=${KSU_VERSION}/" kernel/Makefile
@@ -149,7 +148,6 @@ jobs:
           cd ./KernelSU
           KSU_VERSION=$(expr $(/usr/bin/git rev-list --count HEAD) "+" 10200)
           echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
-          sed -i "s/DKSU_VERSION=16/DKSU_VERSION=${KSU_VERSION}/" kernel/Makefile
           
       - name: Apply SUSFS Patches KernelSU
         if: ${{ (github.event.inputs.kernelsu_variant == 'Official') && github.event.inputs.SUSFS_ENABLED == 'true' }}
@@ -201,16 +199,12 @@ jobs:
           cp ../susfs4ksu/kernel_patches/50_add_susfs_in_gki-${{ github.event.inputs.ANDROID_VERSION }}-${{ github.event.inputs.KERNEL_VERSION }}.patch ./common/
           cp ../susfs4ksu/kernel_patches/fs/* ./common/fs/
           cp ../susfs4ksu/kernel_patches/include/linux/* ./common/include/linux/
-
           cd ./KernelSU
-          echo "Applying SUSFS patches..."
           patch -p1 --forward < 10_enable_susfs_for_ksu.patch || true
-          
-          echo "Applying mksu_susfs.patch"
           cp ../../kernel_patches/mksu_susfs.patch ../KernelSU/
-          patch -p1 < mksu_susfs.patch
-
-          # Change to common directory and apply SUSFS patch
+          patch -p1 < mksu_susfs.patch || true
+          cp ../../kernel_patches/fix.patch ../KernelSU/
+          patch -p1 < fix.patch || true
           cd ../common
           patch -p1 < 50_add_susfs_in_gki-${{ github.event.inputs.ANDROID_VERSION }}-${{ github.event.inputs.KERNEL_VERSION }}.patch || true
 
@@ -234,9 +228,7 @@ jobs:
       - name: Apply Hide Stuff Patches
         if: ${{ github.event.inputs.SUSFS_ENABLED == 'true' }}
         run: |
-          echo "Changing to configuration directory: $CONFIG..."
           cd kernel_workspace/kernel_platform/common
-          # Apply additional patch
           cp ../../kernel_patches/69_hide_stuff.patch ./
           patch -p1 -F 3 < 69_hide_stuff.patch
 
