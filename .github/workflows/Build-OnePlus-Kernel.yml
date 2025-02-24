@@ -179,12 +179,12 @@ jobs:
         if: ${{ github.event.inputs.KERNEL_VER == 'default' }}
         run: |
           if [[ "${{ github.event.inputs.kernelsu_variant }}" == "Next" ]]; then
-            cd kernel_workspace/kernel_platform/kernelSU-Next 
+            cd kernel_workspace/kernel_platform/KernelSU-Next 
             KSU_VERSION=$(( $(/usr/bin/git rev-list --count HEAD) + 10200 ))
             echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
             sed -i "s/DKSU_VERSION=11998/DKSU_VERSION=${KSU_VERSION}/" kernel/Makefile
           else
-            cd kernel_workspace/kernel_platform/kernelSU
+            cd kernel_workspace/kernel_platform/KernelSU
             KSU_VERSION=$(( $(/usr/bin/git rev-list --count HEAD) + 10200 ))
             echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
             sed -i "s/DKSU_VERSION=16/DKSU_VERSION=${KSU_VERSION}/" kernel/Makefile
