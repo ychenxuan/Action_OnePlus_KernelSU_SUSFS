@@ -102,7 +102,7 @@ jobs:
               echo "BRANCH=-" >> $GITHUB_ENV
           elif [[ "${{ github.event.inputs.kernelsu_version }}" == "main" && ( "${{ github.event.inputs.kernelsu_variant }}" == "Official" || "${{ github.event.inputs.kernelsu_variant }}" == "MKSU" ) ]]; then
               echo "BRANCH=-s main" >> $GITHUB_ENV
-          elif [[ "${{ inputs.kernelsu_branch }}" == "main" && "${{ inputs.kernelsu_variant }}" == "Next" ]]; then
+          elif [[ "${{ github.event.inputs.kernelsu_version }}" == "main" && "${{ github.event.inputs.kernelsu_variant }}" == "Next" ]]; then
               echo "BRANCH=-s next" >> $GITHUB_ENV
           fi
 
