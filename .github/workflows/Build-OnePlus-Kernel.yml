@@ -138,6 +138,7 @@ jobs:
           elif [[ "${{ github.event.inputs.kernelsu_variant }}" == "Next" ]]; then
             cd ..
             git clone -b next-susfs https://github.com/KernelSU-Next/KernelSU-Next.git
+            ls
             cd kernel_platform/KernelSU-Next
             cp ../../KernelSU-Next/kernel -r ./
             #cp ../../kernel_patches/KernelSU-Next-Implement-SUSFS-v1.5.5-Universal.patch ./
