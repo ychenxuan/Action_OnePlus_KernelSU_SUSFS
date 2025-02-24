@@ -184,7 +184,7 @@ jobs:
 
           cd ./KernelSU-Next
           cp ../../KernelSU-Next/kernel -r ./
-          sed -i "s/DKSU_VERSION=16/DKSU_VERSION=${{ env.KSUVER }}/" kernel/Makefile
+          sed -i "s/DKSU_VERSION=11998/DKSU_VERSION=${{ env.KSUVER }}/" kernel/Makefile
           #cp ../../kernel_patches/KernelSU-Next-Implement-SUSFS-v1.5.5-Universal.patch ./
           #patch -p1 --forward < KernelSU-Next-Implement-SUSFS-v1.5.5-Universal.patch || true
           cd ../common
