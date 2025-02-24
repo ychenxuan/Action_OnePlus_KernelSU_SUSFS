@@ -109,7 +109,7 @@ jobs:
       - name: Add KSU& MKSU& KSUN& RKSU
         run: |
           cd kernel_workspace/kernel_platform 
-          if [["${{ github.event.inputs.kernelsu_version }}" == "Official" ]]; then
+          if [[ "${{ github.event.inputs.kernelsu_version }}" == "Official" ]]; then
             curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash ${{ env.BRANCH }}
           elif [[ "${{ github.event.inputs.kernelsu_version }}" == "Next" ]]; then
             curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash ${{ env.BRANCH }}
