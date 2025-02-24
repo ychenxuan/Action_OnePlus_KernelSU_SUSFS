@@ -100,9 +100,9 @@ jobs:
         run: |
           if [[ "${{ github.event.inputs.kernelsu_version }}" == "tag" ]]; then
               echo "BRANCH=-" >> $GITHUB_ENV
-          elif [[ "${{ github.event.inputs.kernelsu_version }}" == "main" && ( "${{ github.event.inputs.kernelsu_variant }}" == "Official" || "${{ github.event.inputs.kernelsu_variant }}" == "MKSU" ) ]]; then
+          elif [[ "${{ github.event.inputs.kernelsu_version }}" == "main" && ( "${{ github.event.inputs.kernelsu_version }}" == "Official" || "${{ github.event.inputs.kernelsu_version }}" == "MKSU" || "${{ github.event.inputs.kernelsu_version }}" == "RKSU" ) ]]; then
               echo "BRANCH=-s main" >> $GITHUB_ENV
-          elif [[ "${{ github.event.inputs.kernelsu_version }}" == "main" && "${{ github.event.inputs.kernelsu_variant }}" == "Next" ]]; then
+          elif [[ "${{ github.event.inputs.kernelsu_version }}" == "main" && "${{ github.event.inputs.kernelsu_version }}" == "Next" ]]; then
               echo "BRANCH=-s next" >> $GITHUB_ENV
           fi
 
@@ -138,12 +138,11 @@ jobs:
           elif [[ "${{ github.event.inputs.kernelsu_variant }}" == "Next" ]]; then
             cd ..
             git clone -b next-susfs https://github.com/KernelSU-Next/KernelSU-Next.git
-            cd kernel_platform
-            ls
+            cd ./kernel_platform/KernelSU-Next
             cp ../../KernelSU-Next/kernel -r ./
             #cp ../../kernel_patches/KernelSU-Next-Implement-SUSFS-v1.5.5-Universal.patch ./
             #patch -p1 --forward < KernelSU-Next-Implement-SUSFS-v1.5.5-Universal.patch || true
-          elif [[ "${{ github.event.inputs.kernelsu_variant }}" == "MKSU" ]]; then
+          elif [[ "${{ github.event.inputs.kernelsu_variant }}" == "MKSU" ]); then
             cp ../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./KernelSU/
             cd ./KernelSU
             patch -p1 --forward < 10_enable_susfs_for_ksu.patch || true
