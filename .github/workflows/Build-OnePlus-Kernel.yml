@@ -218,9 +218,9 @@ jobs:
         if: ${{ github.event.inputs.SUSFS_ENABLED == 'true' }}
         run: |
           cd kernel_workspace/kernel_platform/common
-          cp ../../kernel_patches/69_hide_stuff.patch ./
-          patch -p1 -F 3 < 69_hide_stuff.patch
-          
+          cp ../../kernel_patches/new_hooks.patch ./
+          patch -p1 -F 3 < new_hooks.patch
+ 
       - name: KernelSUver
         if: github.event.inputs.KERNEL_VER == 'default'
         run: |
