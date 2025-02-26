@@ -217,6 +217,12 @@ jobs:
           cd kernel_workspace/kernel_platform/common
           cp ../../kernel_patches/new_hooks.patch ./
           patch -p1 -F 3 < new_hooks.patch
+
+      - name: Apply Hide Stuff Patches
+        run: |
+          cd kernel_workspace/kernel_platform/common
+          cp ../../kernel_patches/69_hide_stuff.patch ./
+          patch -p1 -F 3 < 69_hide_stuff.patch
  
       - name: KernelSUver
         if: github.event.inputs.KERNEL_VER == 'default'
