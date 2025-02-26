@@ -124,8 +124,8 @@ jobs:
         if: ${{ github.event.inputs.kernelsu_variant == 'Next' }}
         run: |
           cd kernel_workspace/kernel_platform
-          #curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash $BRANCH     
-          curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next-susfs/kernel/setup.sh" | bash -s next-susfs
+          curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash $BRANCH     
+          #curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next-susfs/kernel/setup.sh" | bash -s next-susfs
           
       - name: Add KernelSU-MKSU
         if: ${{ github.event.inputs.kernelsu_variant == 'MKSU' }}
