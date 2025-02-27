@@ -25,7 +25,7 @@ on:
       KERNEL_NAME:
         description: "修改内核名称"
         required: true
-        default: '-android14-11-o-g1132d864665d'
+        default: '-android14-11-o-g54d4b575ebf6'
       KERNEL_VER:
         description: "自定义版本"
         required: true
