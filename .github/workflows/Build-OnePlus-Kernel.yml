@@ -166,10 +166,12 @@ jobs:
           cp ../susfs4ksu/kernel_patches/50_add_susfs_in_gki-${{ github.event.inputs.ANDROID_VERSION }}-${{ github.event.inputs.KERNEL_VERSION }}.patch ./common/
           cp ../susfs4ksu/kernel_patches/fs/* ./common/fs/
           cp ../susfs4ksu/kernel_patches/include/linux/* ./common/include/linux/
-
+          
           cd ./KernelSU-Next
-          cp ../../kernel_patches/0001-kernel-patch-susfs-v1.5.5-to-KernelSU-Next-v1.0.5.patch ./
+          cp ../../kernel_patches/next/0001-kernel-patch-susfs-v1.5.5-to-KernelSU-Next-v1.0.5.patch ./
           patch -p1 --forward < 0001-kernel-patch-susfs-v1.5.5-to-KernelSU-Next-v1.0.5.patch || true
+          cp ../../kernel_patches/next/next_hooks.patch ./
+          patch -p1 -F 3 < next_hooks.patch
           cd ../common
           patch -p1 < 50_add_susfs_in_gki-${{ github.event.inputs.ANDROID_VERSION }}-${{ github.event.inputs.KERNEL_VERSION }}.patch || true
          
@@ -188,9 +190,9 @@ jobs:
           cp ../susfs4ksu/kernel_patches/include/linux/* ./common/include/linux/
           cd ./KernelSU
           patch -p1 --forward < 10_enable_susfs_for_ksu.patch || true
-          cp ../../kernel_patches/mksu_susfs.patch ../KernelSU/
+          cp ../../kernel_patches/mksu/mksu_susfs.patch ../KernelSU/
           patch -p1 < mksu_susfs.patch || true
-          cp ../../kernel_patches/fix.patch ../KernelSU/
+          cp ../../kernel_patches/mksu/fix.patch ../KernelSU/
           patch -p1 < fix.patch || true
           cd ../common
           patch -p1 < 50_add_susfs_in_gki-${{ github.event.inputs.ANDROID_VERSION }}-${{ github.event.inputs.KERNEL_VERSION }}.patch || true
@@ -210,13 +212,6 @@ jobs:
           cp ../../KernelSU/kernel -r ./
           cd ../common
           patch -p1 < 50_add_susfs_in_gki-${{ github.event.inputs.ANDROID_VERSION }}-${{ github.event.inputs.KERNEL_VERSION }}.patch || true
-
-      - name: Apply Hide Stuff Patches
-        if: ${{ github.event.inputs.SUSFS_ENABLED == 'true' }}
-        run: |
-          cd kernel_workspace/kernel_platform/common
-          cp ../../kernel_patches/new_hooks.patch ./
-          patch -p1 -F 3 < new_hooks.patch
 
       - name: Apply Hide Stuff Patches
         run: |
