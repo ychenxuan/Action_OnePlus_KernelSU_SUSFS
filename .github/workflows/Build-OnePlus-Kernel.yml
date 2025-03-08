@@ -95,6 +95,8 @@ jobs:
          rm kernel_platform/msm-kernel/android/abi_gki_protected_exports_* || echo "No protected exports!"
          sed -i 's/ -dirty//g' kernel_platform/common/scripts/setlocalversion
          sed -i 's/ -dirty//g' kernel_platform/msm-kernel/scripts/setlocalversion
+         sed -i 's/ -dirty$//' kernel_platform/common/scripts/Makefile.modpost
+         sed -i 's/ -dirty//g' kernel_platform/external/dtc/scripts/setlocalversion
 
       - name: KernelSU & MKSU version
         if: ${{ github.event.inputs.kernelsu_variant == 'Official' || github.event.inputs.kernelsu_variant == 'MKSU' }}
