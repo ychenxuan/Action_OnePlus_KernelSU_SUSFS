@@ -40,6 +40,7 @@ on:
           - Next
           - MKSU
           - RKSU
+          - SKSU
         default: Kernel
       kernelsu_version:
         description: "选择 KSU 版本"
@@ -138,6 +139,12 @@ jobs:
         run: |
           cd kernel_workspace/kernel_platform
           curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" | bash -s main
+
+      - name: Add SukiKSU
+        if: ${{ github.event.inputs.kernelsu_variant == 'SKSU' }} 
+        run: |
+          cd kernel_workspace/kernel_platform
+          curl -LSs "https://raw.githubusercontent.com/ShirkNeko/KernelSU/main/kernel/setup.sh" | bash -s main
           
       - name: Apply SUSFS Patches KernelSU
         if: ${{ (github.event.inputs.kernelsu_variant == 'Official') && github.event.inputs.SUSFS_ENABLED == 'true' }}
@@ -213,6 +220,24 @@ jobs:
           cd ../common
           patch -p1 < 50_add_susfs_in_gki-${{ github.event.inputs.ANDROID_VERSION }}-${{ github.event.inputs.KERNEL_VERSION }}.patch || true
 
+      - name: Apply SUSFS Patches SKSU
+        if: ${{ (inputs.kernelsu_variant == 'SKSU') && github.event.inputs.SUSFS_ENABLED == 'true' }}
+        run: |
+          cd kernel_workspace
+          git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-${{ github.event.inputs.ANDROID_VERSION }}-${{ github.event.inputs.KERNEL_VERSION }}
+          git clone https://github.com/TheWildJames/kernel_patches.git
+          cd kernel_platform
+          cp ../susfs4ksu/kernel_patches/50_add_susfs_in_gki-${{ github.event.inputs.ANDROID_VERSION }}-${{ github.event.inputs.KERNEL_VERSION }}.patch ./common/
+          cp ../susfs4ksu/kernel_patches/fs/* ./common/fs/
+          cp ../susfs4ksu/kernel_patches/include/linux/* ./common/include/linux/
+          cd ./KernelSU
+          cp ./patch/MKSU-SKN_susfs.patch
+          patch -p1 -F 3 < MKSU-SKN_susfs.patch
+          cd ../common
+          patch -p1 < 50_add_susfs_in_gki-${{ github.event.inputs.ANDROID_VERSION }}-${{ github.event.inputs.KERNEL_VERSION }}.patch || true
+          cp ../../kernel_patches/hooks/new_hooks.patch ./
+          patch -p1 -F 3 < new_hooks.patch
+          
       - name: Apply Hide Stuff Patches
         run: |
           cd kernel_workspace/kernel_platform/common
@@ -220,6 +245,7 @@ jobs:
           patch -p1 -F 3 < 69_hide_stuff.patch
 
       - name: Add SUSFS Configuration Settings
+        if: github.event.inputs.SUSFS_ENABLED == 'true'
         run: |
          cd kernel_workspace/kernel_platform
          echo "CONFIG_KSU=y" >> ./common/arch/arm64/configs/gki_defconfig
