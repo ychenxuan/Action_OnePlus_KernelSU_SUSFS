@@ -114,7 +114,7 @@ jobs:
           cd ./KernelSU
           KSU_VERSION=$(expr $(/usr/bin/git rev-list --count HEAD) "+" 10600)
           echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
-          sed -i "s/DKSU_VERSION=16/DKSU_VERSION=12554/" kernel/Makefile
+          sed -i "s/DKSU_VERSION=16/DKSU_VERSION=12555/" kernel/Makefile
           
       - name: Apply SUSFS Patches MKSU-SKN
         if: ${{ (inputs.kernelsu_variant == 'MKSU-SKN') && github.event.inputs.SUSFS_ENABLED == 'true' }}
