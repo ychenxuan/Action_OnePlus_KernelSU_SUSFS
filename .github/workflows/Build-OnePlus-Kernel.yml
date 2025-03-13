@@ -115,36 +115,22 @@ jobs:
             echo "BRANCH=-s next" >> $GITHUB_ENV
           fi
          
-      - name: Add KernelSU-Official
-        if: ${{ github.event.inputs.kernelsu_variant == 'Official' }}
+      - name: Add KernelSU
         run: |
           cd kernel_workspace/kernel_platform
-          curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash ${{ env.BRANCH }}
-          
-      - name: Add KernelSU-Next
-        if: ${{ github.event.inputs.kernelsu_variant == 'Next' }}
-        run: |
-          cd kernel_workspace/kernel_platform
-          curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash $BRANCH     
-               
-      - name: Add KernelSU-MKSU
-        if: ${{ github.event.inputs.kernelsu_variant == 'MKSU' }}
-        run: |
-          cd kernel_workspace/kernel_platform
-          curl -LSs "https://raw.githubusercontent.com/5ec1cff/KernelSU/main/kernel/setup.sh" | bash ${{ env.BRANCH }}
-          
-      - name: Add Rsukrnlsu
-        if: ${{ github.event.inputs.kernelsu_variant == 'RKSU' }}
-        run: |
-          cd kernel_workspace/kernel_platform
-          curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" | bash -s main
 
-      - name: Add SukiKSU
-        if: ${{ github.event.inputs.kernelsu_variant == 'SKSU' }} 
-        run: |
-          cd kernel_workspace/kernel_platform
-          curl -LSs "https://raw.githubusercontent.com/ShirkNeko/KernelSU/main/kernel/setup.sh" | bash -s susfs-dev
-        
+          if [ "${{ github.event.inputs.kernelsu_variant }}" == "Official" ]; then
+            curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash ${{ env.BRANCH }}
+          elif [ "${{ github.event.inputs.kernelsu_variant }}" == "Next" ]; then
+            curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash ${{ env.BRANCH }}
+          elif [ "${{ github.event.inputs.kernelsu_variant }}" == "MKSU" ]; then
+            curl -LSs "https://raw.githubusercontent.com/5ec1cff/KernelSU/main/kernel/setup.sh" | bash ${{ env.BRANCH }}
+          elif [ "${{ github.event.inputs.kernelsu_variant }}" == "RKSU" ]; then
+            curl -LSs "https://raw.githubusercontent.com/5ec1cff/KernelSU/main/kernel/setup.sh" | bash -s susfs-v1.5.5
+          elif [ "${{ github.event.inputs.kernelsu_variant }}" == "SKSU" ]; then
+            curl -LSs "https://raw.githubusercontent.com/5ec1cff/KernelSU/main/kernel/setup.sh" | bash -s susfs-dev
+          fi
+          
       - name: Apply SUSFS Patches KernelSU
         if: ${{ (github.event.inputs.kernelsu_variant == 'Official') && github.event.inputs.SUSFS_ENABLED == 'true' }}
         run: |
@@ -214,8 +200,6 @@ jobs:
           cp ../susfs4ksu/kernel_patches/50_add_susfs_in_gki-${{ github.event.inputs.ANDROID_VERSION }}-${{ github.event.inputs.KERNEL_VERSION }}.patch ./common/
           cp ../susfs4ksu/kernel_patches/fs/* ./common/fs/
           cp ../susfs4ksu/kernel_patches/include/linux/* ./common/include/linux/
-          cd ./KernelSU
-          cp ../../KernelSU/kernel -r ./
           cd ../common
           patch -p1 < 50_add_susfs_in_gki-${{ github.event.inputs.ANDROID_VERSION }}-${{ github.event.inputs.KERNEL_VERSION }}.patch || true
 
