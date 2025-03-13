@@ -228,6 +228,9 @@ jobs:
         if: github.event.inputs.SUSFS_ENABLED == 'true'
         run: |
          cd kernel_workspace/kernel_platform
+         if [ "${{ github.event.inputs.kernelsu_variant }}" == "Next" ]; then
+            echo "CONFIG_KSU_WITH_KPROBES=n" >> ./common/arch/arm64/configs/gki_defconfig
+         fi
          echo "CONFIG_KSU=y" >> ./common/arch/arm64/configs/gki_defconfig
          echo "CONFIG_KSU_VFS=y" >> ./common/arch/arm64/configs/gki_defconfig
          echo "CONFIG_KSU_SUSFS=y" >> ./common/arch/arm64/configs/gki_defconfig
