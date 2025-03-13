@@ -263,7 +263,7 @@ jobs:
          echo "CONFIG_KSU_SUSFS_OPEN_REDIRECT=y" >> ./common/arch/arm64/configs/gki_defconfig
          echo "CONFIG_KSU_SUSFS_SUS_SU=n" >> ./common/arch/arm64/configs/gki_defconfig
          echo "CONFIG_KSU_HOOK=y" >> ./common/arch/arm64/configs/gki_defco
-         sed -i '2s/check_defconfig//' ./common/build.config.gki
+         sed -i 's/check_defconfig//' ./common/build.config.gki
  
       - name: KernelSUver
         if: github.event.inputs.KERNEL_VER == 'default'
