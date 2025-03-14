@@ -1,4 +1,4 @@
-name: Build OnePlus_Kernel
+name: BOnePlus_Kernel
 on:
   workflow_dispatch:
     inputs:
