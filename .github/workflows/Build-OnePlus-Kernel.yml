@@ -41,7 +41,7 @@ on:
           - MKSU
           - RKSU
           - SKSU
-        default: Kernel
+        default: MKSU
       kernelsu_version:
         description: "选择 KSU 版本"
         required: true
