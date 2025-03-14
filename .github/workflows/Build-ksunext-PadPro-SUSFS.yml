@@ -93,7 +93,7 @@ jobs:
         if: github.event.inputs.KSUNEXT_ENABLED == 'true'
         run: |
          cd kernel_workspace/kernel_platform
-         curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next-susfs/kernel/setup.sh" | bash -s next-susfs-dev
+         curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -s next
          cd KernelSU-Next
          KSU_VERSION=$(expr $(/usr/bin/git rev-list --count HEAD) "+" 10200)
          echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
@@ -106,10 +106,11 @@ jobs:
          git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-${{ github.event.inputs.ANDROID_VERSION }}-${{ github.event.inputs.KERNEL_VERSION }}
          git clone https://github.com/WildPlusKernel/kernel_patches.git
          cd kernel_platform
-         cp ../kernel_patches/next/0001-kernel-patch-susfs-v1.5.5-to-KernelSU-Next-v1.0.5.patch ./KernelSU-Next/
          cp ../susfs4ksu/kernel_patches/50_add_susfs_in_gki-${{ github.event.inputs.ANDROID_VERSION }}-${{ github.event.inputs.KERNEL_VERSION }}.patch ./common/
-         cp -r ../susfs4ksu/kernel_patches/fs/* ./common/fs/
-         cp -r ../susfs4ksu/kernel_patches/include/linux/* ./common/include/linux/
+         cp ../kernel_patches/next/0001-kernel-patch-susfs-v1.5.5-to-KernelSU-Next-v1.0.5.patch ./KernelSU-Next/
+         cp ../kernel_patches/next/syscall_hooks.patch ./common/
+         cp ../susfs4ksu/kernel_patches/fs/* ./common/fs/
+         cp ../susfs4ksu/kernel_patches/include/linux/* ./common/include/linux/
 
          # Apply patches
          cd ./KernelSU-Next
@@ -118,15 +119,9 @@ jobs:
          patch -p1 < 50_add_susfs_in_gki-${{ github.event.inputs.ANDROID_VERSION }}-${{ github.event.inputs.KERNEL_VERSION }}.patch || true
 
          # Replace next_hooks.patch with syscall_hooks.patch
-         cp ../../kernel_patches/next/syscall_hooks.patch ./
-         patch -p1 -F 3 < syscall_hooks.patch
-
          cp ../../kernel_patches/69_hide_stuff.patch ./
          patch -p1 -F 3 < 69_hide_stuff.patch
-         git add -A && git commit -a -m "BUILD Kernel with SUSFS v${{ github.event.inputs.SUSFS_VERSION }}"
-         cd ../msm-kernel
-         git add -A && git commit -a -m "Update for SUSFS"
-         cd ..
+         patch -p1 -F 3 < syscall_hooks.patch
 
       - name: Apply new hook and add configuration
         run: |
