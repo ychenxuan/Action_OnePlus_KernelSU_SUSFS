@@ -159,6 +159,10 @@ jobs:
             patch -p1 < fix.patch || true
             cp ../../kernel_patches4mksu/mksu/vfs_fix.patch ./
             patch -p1 < vfs_fix.patch
+          elif [ "${{ github.event.inputs.kernelsu_variant }}" == "SKSU" ]; then
+            cd KernelSU
+          elif [ "${{ github.event.inputs.kernelsu_variant }}" == "RKSU" ]; then
+            cd KernelSU
           fi
           
           cd ../common
