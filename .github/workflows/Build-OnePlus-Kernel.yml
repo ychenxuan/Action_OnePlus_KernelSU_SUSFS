@@ -235,7 +235,7 @@ jobs:
             echo "CONFIG_KSU_VFS=y" >> ./common/arch/arm64/configs/gki_defconfig
          fi
 
-         if [ "${{ github.event.inputs.kernelsu_variant }}" == "Next" ] || [ "${{ github.event.inputs.kernelsu_variant }}" = "SKSU"]; then
+         if [ "${{ github.event.inputs.kernelsu_variant }}" == "Next" || "${{ github.event.inputs.kernelsu_variant }}" == "SKSU" ]; then
             echo "CONFIG_KSU_SUSFS_SUS_SU=n" >> ./common/arch/arm64/configs/gki_defconfig
           else
             echo "CONFIG_KSU_SUSFS_SUS_SU=y" >> ./common/arch/arm64/configs/gki_defconfig
