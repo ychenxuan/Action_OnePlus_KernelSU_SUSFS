@@ -147,7 +147,7 @@ jobs:
             cp ../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./KernelSU
             cd ./KernelSU
             patch -p1 --forward < 10_enable_susfs_for_ksu.patch || true
-          elif [ "${{ github.event.inputs.kernelsu_variant }}" == "KSUN" ]; then
+          elif [ "${{ github.event.inputs.kernelsu_variant }}" == "Next" ]; then
             cd ./KernelSU-Next
             cp ../../kernel_patches4mksu/next/0001-kernel-patch-susfs-v1.5.5-to-KernelSU-Next-v1.0.5.patch ./
             patch -p1 --forward < 0001-kernel-patch-susfs-v1.5.5-to-KernelSU-Next-v1.0.5.patch || true
