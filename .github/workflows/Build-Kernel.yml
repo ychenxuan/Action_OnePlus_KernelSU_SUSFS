@@ -37,8 +37,9 @@ on:
         options:
           - MKSU
           - KSUN
-      SUSFS_ENABLED:
-        description: "实验性SUSFS配置"
+          - SKSU
+      VFS_ENABLED:
+        description: "Enable VFS Hook"
         required: true
         type: boolean
         default: true    
@@ -108,7 +109,11 @@ jobs:
           elif [ "${{ github.event.inputs.KSU_BRANCH }}" == "MKSU" ]; then
             echo "Adding KernelSU MKSU..."
             curl -LSs "https://raw.githubusercontent.com/5ec1cff/KernelSU/main/kernel/setup.sh" | bash
-            cd KernelSU
+          elif [ "${{ github.event.inputs.kernelsu_variant }}" == "SKSU" ]; then
+            curl -LSs "https://raw.githubusercontent.com/ShirkNeko/KernelSU/main/kernel/setup.sh" | bash -s susfs-dev 
+          fi
+          if [ "${{ github.event.inputs.kernelsu_variant }}" != "Next" ]; then
+            cd ./KernelSU-Next
             KSU_VERSION=$(expr $(/usr/bin/git rev-list --count HEAD) "+" 10200)
             echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
             sed -i "s/DKSU_VERSION=16/DKSU_VERSION=${KSU_VERSION}/" kernel/Makefile
@@ -120,8 +125,6 @@ jobs:
            git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-android${{ github.event.inputs.ANDROID_VERSION }}-${{ github.event.inputs.KERNEL_VERSION }}
            git clone https://github.com/TanakaLun/kernel_patches4mksu.git
            cd kernel_platform
-           cp ../kernel_patches4mksu/oneplus/001-lz4.patch ./common/
-           cp ../kernel_patches4mksu/oneplus/002-zstd.patch ./common/
            cp ../susfs4ksu/kernel_patches/50_add_susfs_in_gki-android${{ github.event.inputs.ANDROID_VERSION }}-${{ github.event.inputs.KERNEL_VERSION }}.patch ./common/
            cp ../susfs4ksu/kernel_patches/fs/* ./common/fs/
            cp ../susfs4ksu/kernel_patches/include/linux/* ./common/include/linux/
@@ -142,16 +145,18 @@ jobs:
              patch -p1 < mksu_susfs.patch || true
              cp ../../kernel_patches4mksu/mksu/fix.patch ./
              patch -p1 < fix.patch || true
-             cp ../../kernel_patches4mksu/mksu/vfs_fix.patch ./
-             patch -p1 < vfs_fix.patch
            else
              echo "Invalid KernelSU variant selected!"
              exit 1
            fi
             cd ../common
             patch -p1 < 50_add_susfs_in_gki-android${{ github.event.inputs.ANDROID_VERSION }}-${{ github.event.inputs.KERNEL_VERSION }}.patch || true
-           # patch -p1 < 001-lz4.patch || true
-           # patch -p1 < 002-zstd.patch || true
+           if [ "${{ github.event.inputs.CPU }}" == "sm8650" ]; then
+             cp ../../kernel_patches4mksu/oneplus/001-lz4.patch ./
+             cp ../../kernel_patches4mksu/oneplus/002-zstd.patch ./
+             patch -p1 < 001-lz4.patch || true
+             patch -p1 < 002-zstd.patch || true
+           fi
             git add -A && git commit -a -m "BUILD Kernel"
             cd ..
             cd ./msm-kernel && git add -A && git commit -a -m "BUILD Kernel"
@@ -163,15 +168,15 @@ jobs:
           cp ../../kernel_patches4mksu/69_hide_stuff.patch ./
           patch -p1 -F 3 < 69_hide_stuff.patch
                      
-      - name: Apply New Hooks Patches
+      - name: Apply VFS Hooks Patches
+        if: ${{ github.event.inputs.VFS_ENABLED == 'true' }}
         run: |
           cd kernel_workspace/kernel_platform/common
           if [ "${{ github.event.inputs.KSU_BRANCH }}" == "KSUN" ]; then
-             echo "Applying syscall hooks patch patches for KernelSU-Next..."
              cp ../../kernel_patches4mksu/next/syscall_hooks.patch ./
              patch -p1 --forward < syscall_hooks.patch || true
-           elif [ "${{ github.event.inputs.KSU_BRANCH }}" == "MKSU" ]; then
-             echo "Applying SUSFS patches for MKSU..."
+           elif [ "${{ github.event.inputs.kernelsu_variant }}" != "Next" ]; then
+             echo "Applying SUSFS patches for KSU..."
              cp ../../kernel_patches4mksu/hooks/new_hooks.patch ./
              patch -p1 -F 3 < new_hooks.patch
            else
@@ -180,11 +185,19 @@ jobs:
            fi
           
       - name: Add SUSFS Configuration Settings
-        if: ${{ github.event.inputs.SUSFS_ENABLED == 'true' }}
+        if: ${{ github.event.inputs.VFS_ENABLED == 'true' }}
         run: |
           cd kernel_workspace/kernel_platform
+          if [ "${{ github.event.inputs.KSU_BRANCH }}" == "MKSU" ]; then
+            cp ../kernel_patches4mksu/mksu/vfs_fix.patch ./KernelSU/
+            cd ./KernelSU
+            patch -p1 < vfs_fix.patch
+            cd ../
+          fi
           echo "Adding configuration settings to gki_defconfig..."
-
+          if [ "${{ github.event.inputs.kernelsu_variant }}" == "SKSU" ]; then
+            echo "CONFIG_KSU_VFS=y" >> ./common/arch/arm64/configs/gki_defconfig
+          fi
           # Add KSU configuration settings
           echo "CONFIG_KSU=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_KSU_WITH_KPROBES=n" >> ./common/arch/arm64/configs/gki_defconfig
@@ -197,7 +210,7 @@ jobs:
           echo "CONFIG_KSU_SUSFS_AUTO_ADD_SUS_KSU_DEFAULT_MOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_KSU_SUSFS_AUTO_ADD_SUS_BIND_MOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_KSU_SUSFS_SUS_KSTAT=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_KSU_SUSFS_SUS_OVERLAYFS=n" >> ./common/arch/arm64/configs/gki_defconfig
+          #echo "CONFIG_KSU_SUSFS_SUS_OVERLAYFS=n" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_KSU_SUSFS_TRY_UMOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_KSU_SUSFS_AUTO_ADD_TRY_UMOUNT_FOR_BIND_MOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_KSU_SUSFS_SPOOF_UNAME=y" >> ./common/arch/arm64/configs/gki_defconfig
@@ -213,9 +226,8 @@ jobs:
         run: |
          cd kernel_workspace
          if [ -f "./kernel_platform/build_with_bazel.py" ]; then
-         #if [ "${{ github.event.inputs.CPU }}" == "sm8650" ]; then
           echo "build_with_bazel.py"
-          LTO=thin ./kernel_platform/build_with_bazel.py -t ${{ github.event.inputs.CPUD }} gki
+          ./kernel_platform/build_with_bazel.py -t ${{ github.event.inputs.CPUD }} gki
          else
           LTO=thin ./kernel_platform/oplus/build/oplus_build_kernel.sh ${{ github.event.inputs.CPUD }} gki
          fi
@@ -224,16 +236,9 @@ jobs:
         run: |
          git clone https://github.com/TanakaLun/AnyKernel3 --depth=1
          rm -rf ./AnyKernel3/.git
-            IMAGE_PATH="kernel_workspace/kernel_platform/out/msm-${{ github.event.inputs.CPUD }}-${{ github.event.inputs.CPUD }}-gki/dist/Image"
-            ALTERNATE_IMAGE_PATH="kernel_workspace/kernel_platform/out/msm-kernel-${{ github.event.inputs.CPUD }}-gki/dist/Image"
-            DESTINATION_PATH="./AnyKernel3/"
-            if [ -f "$IMAGE_PATH" ]; then
-                cp "$IMAGE_PATH" "$DESTINATION_PATH"
-            elif [ -f "$ALTERNATE_IMAGE_PATH" ]; then
-                cp "$ALTERNATE_IMAGE_PATH" "$DESTINATION_PATH"
-            else
-                exit 1
-            fi
+         IMAGE_DIR="kernel_workspace/kernel_platform/out"
+         AK3_DIR="./AnyKernel3"
+         find "$IMAGE_DIR" -type f -name "Image" -exec cp {} "$AK3_DIR" \;
                    
       - name: Download SUSFS Module
         run: |
