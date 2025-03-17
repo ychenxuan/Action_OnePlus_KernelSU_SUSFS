@@ -96,6 +96,7 @@ jobs:
          rm kernel_platform/msm-kernel/android/abi_gki_protected_exports_* || echo "No protected exports!"
          sed -i 's/ -dirty//g' kernel_platform/common/scripts/setlocalversion
          sed -i 's/ -dirty//g' kernel_platform/msm-kernel/scripts/setlocalversion
+         sed -i 's/ -dirty//g' external/dtc/scripts/setlocalversion
          sed -i 's/ -dirty//g' kernel_platform/build/kernel/kleaf/workspace_status_stamp.py
 
       - name: KernelSU & MKSU version
