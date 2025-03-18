@@ -56,11 +56,11 @@ on:
         required: true
         type: boolean
         default: true
-      SUSFS_CI:
-        description: "SUSFS调用CI"
-        required: true
-        type: boolean
-        default: true
+     # SUSFS_CI:
+       # description: "SUSFS调用CI"
+       # required: true
+       # type: boolean
+      #  default: true
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -265,7 +265,7 @@ jobs:
          cp kernel_workspace/kernel_platform/out/msm-kernel-${{ github.event.inputs.CPUD }}-gki/dist/Image ./kernel_workspace/kernel
          
       - name: Download Latest SUSFS Module from CI
-        if: ${{ github.event.inputs.SUSFS_CI == 'true' }}
+     #   if: ${{ github.event.inputs.SUSFS_CI == 'true' }}
         run: |
           LATEST_RUN_ID=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
             "https://api.github.com/repos/sidex15/susfs4ksu-module/actions/runs" | jq -r '.workflow_runs[0].id')
@@ -276,11 +276,11 @@ jobs:
           curl -L -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -o ksu_module_susfs.zip "$ARTIFACT_URL"
           cp ksu_module_susfs.zip ./AnyKernel3/
 
-      - name: Download Latest SUSFS Module from Release
-        if: ${{ github.event.inputs.SUSFS_CI == 'false' }}
-        run: |
-          wget https://github.com/sidex15/ksu_module_susfs/releases/latest/download/ksu_module_susfs_1.5.2+.zip
-          cp ksu_module_susfs_1.5.2+.zip ./AnyKernel3/   
+     # - name: Download Latest SUSFS Module from Release
+      #  if: ${{ github.event.inputs.SUSFS_CI == 'false' }}
+#        run: |
+#          wget https://github.com/sidex15/ksu_module_susfs/releases/latest/download/ksu_module_susfs_1.5.2+.zip
+#          cp ksu_module_susfs_1.5.2+.zip ./AnyKernel3/   
          
       - name: Upload AnyKernel3
         uses: actions/upload-artifact@v4
