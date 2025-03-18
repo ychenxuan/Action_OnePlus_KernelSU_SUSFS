@@ -56,6 +56,11 @@ on:
         required: true
         type: boolean
         default: true
+      SUSFS_CI:
+        description: "SUSFS调用CI"
+        required: true
+        type: boolean
+        default: true
 jobs:
   build:
     runs-on: ubuntu-latest
