@@ -1,4 +1,4 @@
-name: Build OnePlus_Kernel
+uname: Build OnePlus_Kernel
 on:
   workflow_dispatch:
     inputs:
@@ -53,6 +53,11 @@ on:
         default: main
       SUSFS_ENABLED:
         description: "添加 SUSFS"
+        required: true
+        type: boolean
+        default: true
+      SUSFS_CI:
+        description: "SUSFS调用CI"
         required: true
         type: boolean
         default: true
