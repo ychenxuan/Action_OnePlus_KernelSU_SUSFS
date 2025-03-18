@@ -1,4 +1,4 @@
-uname: Build OnePlus_Kernel
+name: Build OnePlus_Kernel
 on:
   workflow_dispatch:
     inputs:
