@@ -5,19 +5,19 @@ on:
       CPU:
         description: "分支"
         required: true
-        default: 'sm8475'
+        default: 'sm8650'
       CPUD:
         description: "处理器代号"
         required: true
-        default: 'waipio'
+        default: "pineapple"
       ANDROID_VERSION:
         description: "内核安卓版本"
         required: true
-        default: '12'
+        default: '14'
       KERNEL_VERSION:
         description: "内核版本"
         required: true
-        default: '5.10'
+        default: '6.1'
       FEIL:
         description: "机型/Model"
         required: true
@@ -37,7 +37,12 @@ on:
         options:
           - MKSU
           - KSUN
-          - SKSU
+          - SKSU-SUSFS
+      SUSFS_ENABLED:
+        description: "Enable SUSFS"
+        required: true
+        type: boolean
+        default: true          
       VFS_ENABLED:
         description: "Enable VFS Hook"
         required: true
@@ -101,25 +106,27 @@ jobs:
           cd kernel_workspace/kernel_platform
           if [ "${{ github.event.inputs.KSU_BRANCH }}" == "KSUN" ]; then
             echo "Adding KernelSU Next..."
-            curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash
-            cd ./KernelSU-Next
-            KSU_VERSION=$(expr $(/usr/bin/git rev-list --count HEAD) "+" 10200)
-            echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
-            sed -i "s/DKSU_VERSION=11998/DKSU_VERSION=${KSU_VERSION}/" kernel/Makefile         
+            curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash         
           elif [ "${{ github.event.inputs.KSU_BRANCH }}" == "MKSU" ]; then
-            echo "Adding KernelSU MKSU..."
+            echo "Adding MKSU..."
             curl -LSs "https://raw.githubusercontent.com/5ec1cff/KernelSU/main/kernel/setup.sh" | bash
           elif [ "${{ github.event.inputs.kernelsu_variant }}" == "SKSU" ]; then
             curl -LSs "https://raw.githubusercontent.com/ShirkNeko/KernelSU/main/kernel/setup.sh" | bash -s susfs-dev 
           fi
-          if [ "${{ github.event.inputs.kernelsu_variant }}" != "Next" ]; then
-            cd ./KernelSU-Next
+          if [ "${{ github.event.inputs.kernelsu_variant }}" = "Next" ]; then
+            DKSUVER=11998
+            KSUD=KernelSU-Next
+          else
+            DKSUBER=16
+            KSUD=KernelSU
+          fi
+            cd ./$KSUD
             KSU_VERSION=$(expr $(/usr/bin/git rev-list --count HEAD) "+" 10200)
             echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
-            sed -i "s/DKSU_VERSION=16/DKSU_VERSION=${KSU_VERSION}/" kernel/Makefile
-          fi
+            sed -i "s/DKSU_VERSION=$DKSUVER/DKSU_VERSION=${KSU_VERSION}/" kernel/Makefile
                  
       - name: Set up susfs
+        if: ${{ github.event.inputs.VFS_ENABLED == 'true' }}
         run: |
            cd kernel_workspace
            git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-android${{ github.event.inputs.ANDROID_VERSION }}-${{ github.event.inputs.KERNEL_VERSION }}
@@ -163,6 +170,7 @@ jobs:
             cd ..
            
       - name: Apply Hide Stuff Patches
+        if: ${{ github.event.inputs.VFS_ENABLED == 'true' }}
         run: |
           cd kernel_workspace/kernel_platform/common
           cp ../../kernel_patches4mksu/69_hide_stuff.patch ./
@@ -210,7 +218,7 @@ jobs:
           echo "CONFIG_KSU_SUSFS_AUTO_ADD_SUS_KSU_DEFAULT_MOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_KSU_SUSFS_AUTO_ADD_SUS_BIND_MOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_KSU_SUSFS_SUS_KSTAT=y" >> ./common/arch/arm64/configs/gki_defconfig
-          #echo "CONFIG_KSU_SUSFS_SUS_OVERLAYFS=n" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_SUSFS_SUS_OVERLAYFS=n" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_KSU_SUSFS_TRY_UMOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_KSU_SUSFS_AUTO_ADD_TRY_UMOUNT_FOR_BIND_MOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_KSU_SUSFS_SPOOF_UNAME=y" >> ./common/arch/arm64/configs/gki_defconfig
@@ -225,12 +233,12 @@ jobs:
       - name: Build kernel 
         run: |
          cd kernel_workspace
-         if [ -f "./kernel_platform/build_with_bazel.py" ]; then
-          echo "build_with_bazel.py"
-          ./kernel_platform/build_with_bazel.py -t ${{ github.event.inputs.CPUD }} gki
-         else
+         #if [ -f "./kernel_platform/build_with_bazel.py" ]; then
+          #echo "build_with_bazel.py"
+          #./kernel_platform/build_with_bazel.py -t ${{ github.event.inputs.CPUD }} gki
+         #else
           LTO=thin ./kernel_platform/oplus/build/oplus_build_kernel.sh ${{ github.event.inputs.CPUD }} gki
-         fi
+         #fi
 
       - name: Make AnyKernel3
         run: |
