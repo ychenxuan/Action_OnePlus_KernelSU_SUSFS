@@ -238,6 +238,7 @@ jobs:
          cd kernel_workspace/kernel_platform
          sed -i '$s|echo "\$res"|echo "\${{ github.event.inputs.KERNEL_NAME }}"|' ./common/scripts/setlocalversion
          sed -i "/stable_scmversion_cmd/s/-maybe-dirty//g" ./build/kernel/kleaf/impl/stamp.bzl
+         sed -i 's|build-timestamp = $(or $(KBUILD_BUILD_TIMESTAMP), $(build-timestamp-auto))|build-timestamp = "Mon Feb 17 15:01:47 UTC 2025"|' ./common/init/Makefile
       
       - name: Build kernel
         run: |
