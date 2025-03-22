@@ -25,7 +25,7 @@ on:
       KERNEL_NAME:
         description: "修改内核名称"
         required: true
-        default: '-android14-11-o-g54d4b575ebf6'
+        default: '-android14-11-o-g96906c366ea0'
       KERNEL_VER:
         description: "自定义版本"
         required: true
@@ -238,7 +238,7 @@ jobs:
          cd kernel_workspace/kernel_platform
          sed -i '$s|echo "\$res"|echo "\${{ github.event.inputs.KERNEL_NAME }}"|' ./common/scripts/setlocalversion
          sed -i "/stable_scmversion_cmd/s/-maybe-dirty//g" ./build/kernel/kleaf/impl/stamp.bzl
-         sed -i 's|build-timestamp = $(or $(KBUILD_BUILD_TIMESTAMP), $(build-timestamp-auto))|build-timestamp = "Mon Feb 17 15:01:47 UTC 2025"|' ./common/init/Makefile
+         sed -i 's|build-timestamp = $(or $(KBUILD_BUILD_TIMESTAMP), $(build-timestamp-auto))|build-timestamp =  "Wed Mar 12 08:35:37 UTC 2025"|' ./common/init/Makefile
       
       - name: Build kernel
         run: |
