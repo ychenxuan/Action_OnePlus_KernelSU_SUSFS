@@ -1,0 +1,184 @@
+name: Build & Release KernelSU
+
+on:
+  workflow_dispatch:
+    inputs:
+      CPU:
+        description: "分支"
+        required: true
+        default: 'sm8650'
+      FEIL:
+        description: "配置文件"
+        required: true
+        default: 'oneplus_pad2_v'
+      CPUD:
+        description: "处理器代号"
+        required: true
+        default: 'pineapple'
+      ANDROID_VERSION:
+        description: "内核安卓版本"
+        required: true
+        default: 'android14'
+      KERNEL_VERSION:
+        description: "内核版本"
+        required: true
+        default: '6.1'
+      KERNEL_NAME:
+        description: "修改内核名称"
+        required: false
+        default: ''
+      kernelsu_variant:
+        description: "选择 KSU"
+        required: true
+        type: choice
+        options:
+          - Kernel
+          - SukiSU
+        default: SukiSU
+      kernelsu_version:
+        description: "选择 KSU 版本"
+        required: true
+        type: choice
+        options:
+          - without ksu
+          - tag
+          - main
+        default: main
+      SUSFS_ENABLED:
+        description: "添加 SUSFS"
+        required: true
+        type: boolean
+        default: true
+      VFS_patch_ENABLED:
+        description: "添加vfs补丁（新钩子）？"
+        required: true
+        type: choice
+        options:
+          - enable
+          - disable
+        default: enable
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: read
+
+    steps:
+      - name: Maximize build space
+        uses: easimon/maximize-build-space@master
+        with:
+          root-reserve-mb: 8192
+          temp-reserve-mb: 2048
+          remove-dotnet: 'true'
+          remove-android: 'true'
+          remove-haskell: 'true'
+          remove-codeql: 'true'
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "ychenxuan"
+          git config --global user.email "3494167979@qq.com"
+
+      - name: Install dependencies
+        run: |
+          sudo apt update && sudo apt upgrade -y
+          sudo apt install -y python3 git curl
+
+      - name: Install repo tool
+        run: |
+          curl https://storage.googleapis.com/git-repo-downloads/repo > ~/repo
+          chmod a+x ~/repo
+          sudo mv ~/repo /usr/local/bin/repo
+
+      - name: Initialize repo and sync
+        run: |
+          mkdir kernel_workspace && cd kernel_workspace
+          repo init -u https://github.com/OnePlusOSS/kernel_manifest.git -b refs/heads/oneplus/${{ github.event.inputs.CPU }} -m ${{ github.event.inputs.FEIL }}.xml --depth=1
+          repo sync
+          rm kernel_platform/common/android/abi_gki_protected_exports_* || echo "No protected exports!"
+          rm kernel_platform/msm-kernel/android/abi_gki_protected_exports_* || echo "No protected exports!"
+          sed -i 's/ -dirty//g' kernel_platform/common/scripts/setlocalversion
+          sed -i 's/ -dirty//g' kernel_platform/msm-kernel/scripts/setlocalversion
+
+      - name: Build kernel
+        if: github.event.inputs.CPU == 'sm8650' 
+        run: |
+          cd kernel_workspace
+          ./kernel_platform/build_with_bazel.py -t ${{ github.event.inputs.CPUD }} gki
+
+      - name: Fallback build kernel
+        if: github.event.inputs.CPU != 'sm8650' 
+        run: |
+          cd kernel_workspace
+          LTO=thin ./kernel_platform/oplus/build/oplus_build_kernel.sh ${{ github.event.inputs.CPUD }} gki
+
+      - name: Make AnyKernel3
+        run: |
+          git clone https://github.com/Kernel-SU/AnyKernel3 --depth=1
+          rm -rf ./AnyKernel3/.git
+          cp kernel_workspace/kernel_platform/out/msm-kernel-${{ github.event.inputs.CPUD }}-gki/dist/Image ./AnyKernel3/
+          cp kernel_workspace/kernel_platform/out/msm-kernel-${{ github.event.inputs.CPUD }}-gki/dist/Image ./kernel_workspace/kernel
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install commitlint
+        run: |
+          npm install -g commitlint conventional-changelog-cli
+
+      - name: Generate Changelog
+        uses: conventional-changelog/gh-release@v2
+        id: changelog
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          version: ${{ github.ref_name }}
+          path: ./CHANGELOG.md
+          config: .github/commitlint.config.js
+          exclude: 'chore|docs|test'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🚀 Create GitHub Release
+        uses: softprops/action-gh-release@v4
+        id: release
+        with:
+          tag_name:         ${{ github.event.inputs.FEIL }}_v${{ github.event.inputs.KERNEL_VERSION }}_${{ format('{0:0{1}}', github.run_number, 3) }}
+          release_name:     KernelSU-${{ env.KSUVER }}-${{ github.event.inputs.FEIL }}
+          body_path:        .github/RELEASE_TEMPLATE.md
+          assets:           |
+            ./AnyKernel3/Image
+            ./kernel_workspace/kernel/Image
+          draft:            false
+          prerelease:       ${{ github.event.inputs.prerelease || false }}
+          generate_release_notes: false
+          fail_on_unmatched: false
+          files_glob:       '**/*'
+        env:
+          GITHUB_TOKEN:     ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload AnyKernel3
+        uses: actions/upload-artifact@v4
+        with:
+          name: AnyKernel3_KernelSU_${{ env.KSUVER }}_${{ github.event.inputs.FEIL }}
+          path: ./AnyKernel3/*
+
+      - name: Upload Image
+        uses: actions/upload-artifact@v4
+        with:
+          name: Image_KernelSU_${{ env.KSUVER }}_${{ github.event.inputs.FEIL }}
+          path: kernel_workspace/kernel
+
+      - name: Notify Slack
+        uses: rtCamp/action-slack-notify@v2
+        if: always()
+        with:
+          status: ${{ job.status }}
+          channel: '#releases'
+          token: ${{ secrets.SLACK_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
