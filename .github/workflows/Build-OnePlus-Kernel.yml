@@ -189,6 +189,7 @@ jobs:
 
           if [ "${{ github.event.inputs.kernelsu_variant }}" == "SKSU" ]; then
              echo "CONFIG_KSU_MANUAL_HOOK=y" >> ./common/arch/arm64/configs/gki_defconfig
+             echo "CONFIG_KPM=y" >> ./common/arch/arm64/configs/gki_defconfig
           else
              echo "CONFIG_KSU_WITH_KPROBES=n" >> ./common/arch/arm64/configs/gki_defconfig
           fi
