@@ -5,7 +5,7 @@ on:
       KERNEL_NAME:
       description: "修改内核名称"
       required: true
-      默认: '-android14-11-o-g96906c366ea0'
+      default: '-android14-11-o-g96906c366ea0'
 
 jobs:
   build:
