@@ -9,7 +9,7 @@ on:
       FEIL:
         description: "配置文件"
         required: true
-        default: 'oneplus_ace3_pro_v'
+        default: 'oneplus_pad2_v'
       CPUD:
         description: "处理器代号"
         required: true
@@ -24,7 +24,7 @@ on:
         default: '6.1'
       KERNEL_NAME:
         description: "修改内核名称"
-        required: true
+        required: false 
         default: '-android14-11-o-g96906c366ea0'
       kernelsu_variant:
         description: "选择 KSU"
@@ -142,13 +142,13 @@ jobs:
           patch -p1 < 50_add_susfs_in_gki-${{ github.event.inputs.ANDROID_VERSION }}-${{ github.event.inputs.KERNEL_VERSION }}.patch || true
           echo "完成"
           
-      - name: Apply Hide Stuff Patches
-        if: ${{ github.event.inputs.SUSFS_ENABLED == 'true' }}
-        run: |
-          cd kernel_workspace/kernel_platform/common
-          cp ../../SukiSU_patch/69_hide_stuff.patch ./
-          echo "正在打隐藏应用补丁"
-          patch -p1 -F 3 < 69_hide_stuff.patch
+     # - name: Apply Hide Stuff Patches
+       # if: ${{ github.event.inputs.SUSFS_ENABLED == 'true' }}
+      #  run: |
+        #  cd kernel_workspace/kernel_platform/common
+       #   cp ../../SukiSU_patch/69_hide_stuff.patch ./
+      #    echo "正在打隐藏应用补丁"
+       #   patch -p1 -F 3 < 69_hide_stuff.patch
          
       - name: Apply New Hooks Patches
         if: ${{ github.event.inputs.VFS_patch_ENABLED == 'enable' }}
